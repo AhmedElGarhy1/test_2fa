@@ -36,6 +36,7 @@ export const jwtConfig = {
 
 export const otpConfig = {
   secretKey: 'Ahmed ElGarhy',
-  expiresIn: 60 * 5, // 5 minutes
   serviceName: 'ElGarhy',
+  digits: 6,
+  step: 30,
 };

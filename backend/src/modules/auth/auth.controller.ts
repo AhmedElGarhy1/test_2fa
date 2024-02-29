@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { TwoFactorService } from 'src/common/modules/twoFactor/TwoFactor.service';
+import { TwoFaDto } from './dto/twoFa.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -11,11 +20,6 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly twoFactorService: TwoFactorService,
   ) {}
-
-  @Get()
-  getAllUsers() {
-    return this.twoFactorService.generateToken('gemater.g@gmail.com');
-  }
 
   @Post('register')
   register(@Body() data: RegisterDto) {
@@ -26,6 +30,12 @@ export class AuthController {
   @Post('login')
   login(@Body() data: LoginDto) {
     const user = this.authService.login(data);
+    return user;
+  }
+
+  @Post('2fa/verify')
+  verify2FA(@Body() twoFaDto: TwoFaDto) {
+    const user = this.authService.verifyTwoFactor(twoFaDto);
     return user;
   }
 
