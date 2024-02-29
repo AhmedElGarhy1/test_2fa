@@ -1,24 +1,11 @@
-import { useState } from "react";
+import { FC, useState } from "react";
 import OtpInput from "react-otp-input";
-import { useMutation } from "react-query";
-import { useNavigate } from "react-router-dom";
-import baseAxios from "../../config/axios";
 
-const TwoFactor = ({ email }: { email: string }) => {
-  const navigate = useNavigate();
-  const { mutateAsync } = useMutation("otp", (data: any) =>
-    baseAxios.post("/auth/2fa/verify", data)
-  );
+interface IProps {
+  callback: (otp: string) => void;
+}
+const TwoFactor: FC<IProps> = ({ callback }) => {
   const [otp, setOtp] = useState("");
-
-  const verifyOtp = () => {
-    mutateAsync({ email, code: otp }).then((res) => {
-      if (res.status === 201) {
-        localStorage.setItem("accessToken", res.data.accessToken);
-        navigate("/landing");
-      }
-    });
-  };
 
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
@@ -43,7 +30,7 @@ const TwoFactor = ({ email }: { email: string }) => {
         />
 
         <button
-          onClick={verifyOtp}
+          onClick={() => callback(otp)}
           className="bg-main text-white py-3 px-20 rounded-md mt-5 mx-auto block text-2xl hover:bg-green-700 transition"
         >
           Verify

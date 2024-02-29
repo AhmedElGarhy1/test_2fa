@@ -5,16 +5,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LoginDto } from './dto/login.dto';
-import { EmailService } from 'src/common/modules/email/email.service';
 import { JwtService } from '@nestjs/jwt';
-import { IJwtPayload } from './interfaces/jwt-payload.interface';
-import { RegisterDto } from './dto/register.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
+import { EmailService } from 'src/common/modules/email/email.service';
 import { TwoFactorService } from 'src/common/modules/twoFactor/TwoFactor.service';
-import { TwoFaDto } from './dto/twoFa.dto';
+import { mailConfig } from 'src/config';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { IJwtPayload } from './interfaces/jwt-payload.interface';
+import { User } from './schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -47,48 +47,49 @@ export class AuthService {
   }
 
   async login(data: LoginDto) {
-    const { email, password } = data;
+    const { email, password, code } = data;
 
     // validate email
     const user = await this.findByEmail(email);
     if (!user) throw new BadRequestException("Email doen't exist");
 
     // validate password
-    const isValid = await user.validatePassword(password);
-    if (!isValid) throw new BadRequestException('Invalid Password');
+    const isValidPassword = await user.validatePassword(password);
+    if (!isValidPassword) throw new BadRequestException('Invalid Password');
 
     // check if user is verified
     if (!user.verifiedAt) {
-      throw new BadRequestException('Please verify your email');
+      throw new BadRequestException('Please verify your email first');
+    }
+
+    if (code) {
+      const isValidOtp = this.twoFactorService.verifyToken(
+        code,
+        user.twoFactorToken,
+      );
+      if (!isValidOtp) throw new BadRequestException('Invalid code');
+      else {
+        if (!user.twoFactorEnabled) {
+          user.twoFactorEnabled = true;
+          await user.save();
+        }
+        const accessToken = this.generateAccessToken({ email });
+        return { accessToken, message: 'Successfully Authenticated' };
+      }
     }
 
     // check if setup 2FA
-    if (user.twoFactorToken) {
-      return { message: 'Please send 2fa code' };
+    if (user.twoFactorEnabled) {
+      return { message: 'Please add code field' };
     }
 
+    // generate new code
     const { secret, imageUrl } =
       await this.twoFactorService.generateToken(email);
 
     user.twoFactorToken = secret;
     await user.save();
     return { message: 'Please setup 2FA', imageUrl };
-  }
-
-  async verifyTwoFactor(twofaDto: TwoFaDto) {
-    const { email, code } = twofaDto;
-    const user = await this.findByEmail(email);
-    if (!user) throw new BadRequestException('Invalid email');
-
-    const isValid = this.twoFactorService.verifyToken(
-      code,
-      user.twoFactorToken,
-    );
-
-    if (!isValid) throw new BadRequestException('Invalid code');
-
-    const accessToken = this.generateAccessToken({ email });
-    return { accessToken, message: 'Successfully Authenticated' };
   }
 
   async verifyEmail(emailToken: string) {
@@ -105,7 +106,9 @@ export class AuthService {
     user.verifiedAt = new Date();
     const newUser = await user.save();
     await verification.deleteOne();
-    return newUser;
+    return `
+    <script>window.location.href = "${mailConfig.client.domain}/login"</script>;
+    `;
   }
 
   async findByEmail(email: string) {

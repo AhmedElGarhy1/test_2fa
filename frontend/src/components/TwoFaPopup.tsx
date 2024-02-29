@@ -1,6 +1,11 @@
-import { Link } from "react-router-dom";
+import { FC } from "react";
 
-const TwoFaPopup = ({ image }: { image: string }) => {
+interface IProps {
+  image: string;
+  callback: () => void;
+}
+
+const TwoFaPopup: FC<IProps> = ({ image, callback }) => {
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
       <div className="w-[90%] max-w-[700px] bg-white p-10 ">
@@ -28,12 +33,12 @@ const TwoFaPopup = ({ image }: { image: string }) => {
           </p>
         </div>
         <div className="flex justify-center">
-          <Link
-            to="/2fa"
+          <button
+            onClick={callback}
             className="bg-green-600 hover:bg-green-700 text-center px-28 py-2 text-lg font-bold text-white  mx-auto mt-6"
           >
             Continue
-          </Link>
+          </button>
         </div>
       </div>
     </div>

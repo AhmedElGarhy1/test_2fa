@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "react-query";
 import { Link } from "react-router-dom";
+import PasswordIcon from "../../components/PasswordIcon";
 import baseAxios from "../../config/axios";
 
 const Register = () => {
@@ -8,6 +9,8 @@ const Register = () => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [canSeePassword, setCanSeePassword] = useState<boolean>(false);
 
   const [showConfirmation, setShowConfirmation] = useState(false);
 
@@ -52,13 +55,68 @@ const Register = () => {
             placeholder="Email"
           />
           <div className="w-[105%]">
-            <input
-              onChange={(e) => setPassword(e.target.value)}
-              value={password}
-              className="text-lg border w-full rounded-md p-4 border-gray-600"
-              type="password"
-              placeholder="Password"
-            />
+            <div className="flex gap-10 relative">
+              <input
+                onChange={(e) => setPassword(e.target.value)}
+                value={password}
+                className="text-lg border w-full rounded-md p-4 border-gray-600"
+                type={canSeePassword ? "text" : "password"}
+                placeholder="Password"
+              />
+              <span className="absolute right-3 top-4">
+                <PasswordIcon
+                  setCanSee={setCanSeePassword}
+                  canSee={canSeePassword}
+                />
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-10">
+          <div className="flex-1"></div>
+          <div className="flex-1">
+            <ul className="flex flex-wrap gap-3 my-2 text-xs">
+              <li className="flex gap-2">
+                <img
+                  width="10"
+                  src="https://www.svgrepo.com/show/49904/check-mark-black-outline.svg"
+                  alt=""
+                />
+                Lowercase
+              </li>
+              <li className="flex gap-2">
+                <img
+                  width="10"
+                  src="https://www.svgrepo.com/show/49904/check-mark-black-outline.svg"
+                  alt=""
+                />
+                Uppercase
+              </li>
+              <li className="flex gap-2">
+                <img
+                  width="10"
+                  src="https://www.svgrepo.com/show/49904/check-mark-black-outline.svg"
+                  alt=""
+                />
+                Special characters
+              </li>
+              <li className="flex gap-2">
+                <img
+                  width="10"
+                  src="https://www.svgrepo.com/show/49904/check-mark-black-outline.svg"
+                  alt=""
+                />
+                Numbers
+              </li>
+              <li className="flex gap-2">
+                <img
+                  width="10"
+                  src="https://www.svgrepo.com/show/49904/check-mark-black-outline.svg"
+                  alt=""
+                />
+                Min 8 Characters
+              </li>
+            </ul>
           </div>
         </div>
         <div>
@@ -69,7 +127,7 @@ const Register = () => {
           >
             {isLoading ? "Loading..." : "Sign up"}
           </button>
-          <div>
+          <div className="text-center">
             Already have an Account?{" "}
             <Link to="/login" className="text-green-600">
               Login

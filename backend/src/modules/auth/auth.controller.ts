@@ -1,18 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { TwoFactorService } from 'src/common/modules/twoFactor/TwoFactor.service';
-import { TwoFaDto } from './dto/twoFa.dto';
+import { CurrentUser } from 'src/decorators/current-user.decorator';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { User } from './schemas/user.schema';
 
 @Controller('auth')
 export class AuthController {
@@ -20,6 +13,12 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly twoFactorService: TwoFactorService,
   ) {}
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  getMe(@CurrentUser() user: User) {
+    return user;
+  }
 
   @Post('register')
   register(@Body() data: RegisterDto) {
@@ -30,12 +29,6 @@ export class AuthController {
   @Post('login')
   login(@Body() data: LoginDto) {
     const user = this.authService.login(data);
-    return user;
-  }
-
-  @Post('2fa/verify')
-  verify2FA(@Body() twoFaDto: TwoFaDto) {
-    const user = this.authService.verifyTwoFactor(twoFaDto);
     return user;
   }
 

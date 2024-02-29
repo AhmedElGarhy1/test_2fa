@@ -21,6 +21,9 @@ export class User {
   @Prop()
   twoFactorToken: string;
 
+  @Prop({ default: false })
+  twoFactorEnabled: boolean;
+
   validatePassword: (password: string) => Promise<boolean>;
 }
 

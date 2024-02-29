@@ -1,5 +1,4 @@
 require('dotenv').config();
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 export const mailConfig = {
   transport: {
@@ -16,15 +15,8 @@ export const mailConfig = {
       pass: process.env.EMAIL_PASS,
     },
   },
-  defaults: {
-    from: 'ElGarhy <gemater.g@gmail.com>',
-  },
-  template: {
-    dir: process.cwd() + '/template/',
-    adapter: new HandlebarsAdapter(),
-    options: {
-      strict: true,
-    },
+  client: {
+    domain: 'http://localhost:5173',
   },
 };
 
